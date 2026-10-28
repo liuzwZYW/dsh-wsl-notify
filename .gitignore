@@ -16,3 +16,6 @@ node_modules/
 *.pem
 *.key
 credentials*.yaml
+
+# local package cache
+.npm-cache/

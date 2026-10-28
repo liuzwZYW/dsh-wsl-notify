@@ -1,75 +1,76 @@
-# dsh-wsl-notify
-> **Install set:** part of [dsh-wsl-kit](https://github.com/173787247/dsh-wsl-kit). Prefer `KIT_SET=daily` | `llm` | `github` | `full` (see kit README). Fault tree: [TROUBLESHOOTING.md](https://github.com/173787247/dsh-wsl-kit/blob/master/docs/TROUBLESHOOTING.md).
+# @liuzw/dsh-wsl-notify
 
+Fork of [`173787247/dsh-wsl-notify`](https://github.com/173787247/dsh-wsl-notify)
+(0.1.1, MIT), maintained by liuzw. Adds **deterministic notifications** — the
+0.2.0 feature that upstream does not have.
 
-DeepSeek Harness tool: **`win_notify`** — show a short **Windows MessageBox** when a long WSL task finishes.
+> Why the fork: upstream only registers a tool plus a soft prompt hint, so most
+> finished tasks went unannounced. The fork watches the session event stream and
+> notifies on its own. It also installs as its own package, so reinstalling the
+> upstream plugin no longer overwrites it.
 
-Part of **[dsh-wsl-kit](https://github.com/173787247/dsh-wsl-kit)**.
+## What it does
 
-[中文说明 → README.zh.md](./README.zh.md)
+| Trigger | Title | Body |
+|---|---|---|
+| Top-level turn goes idle after >= `autoMinSeconds` | `DSH 任务完成` | reply snippet |
+| `ask_user_question` still unanswered after `questionDelayMs` | `DSH 等待你的选择` | the question |
+| `approval/asked` undecided for `approvalDelayMs` | `DSH 需要授权` | tool name + reason |
 
-## Where it sits
-
-Shows a Windows message box from the agent in WSL.
-
-```mermaid
-flowchart LR
-  agent["dsh agent"] --> tool["win_notify"] --> win["Windows message box"]
-```
-
-Suite diagram and version snapshot: [dsh-wsl-kit](https://github.com/173787247/dsh-wsl-kit#how-the-pieces-fit). This plugin is **0.1.1** (github). Do not copy that matrix into this README.
-
-
----
-## Compatibility
-
-| Field | Value |
-|-------|-------|
-| **Plugin** | `dsh-wsl-notify` **0.1.1** |
-| **Minimum dsh** | ≥ **0.1.2** (web UI one-shot `?token=` on Windows relay `:3081`) |
-| **Latest verified** | See [dsh-wsl-kit Compatibility](https://github.com/173787247/dsh-wsl-kit#compatibility-2026-09) (currently **`0.2.0-rc.2`**) — single source of truth for the suite |
-| **Kit set** | `github` / `full` |
-| **Cloud Flash** | Use model id **`deepseek-flash`** (V4.1 Flash) in `~/.dsh/settings.yaml` / `llm-deepseek` — not configured by this plugin |
-| **Agent Teams** | Upstream experimental; not required here |
-
-Suite floor versions: kit [`check-plugin-versions.sh`](https://github.com/173787247/dsh-wsl-kit/blob/master/scripts/check-plugin-versions.sh). Fault tree: [TROUBLESHOOTING.md](https://github.com/173787247/dsh-wsl-kit/blob/master/docs/TROUBLESHOOTING.md).
-
-## Why
-
-You leave a long agent run in the background; when it finishes, a Windows popup is easier to notice than a tab title.
-
-**Note:** `messagebox` is **blocking** until dismissed. `toast` uses a tray BalloonTip (non-blocking); if it fails, falls back to MessageBox. Keep title/body short; no secrets.
+- Toast (non-blocking balloon) by default; `autoMode: messagebox` for a dialog.
+- Subagent sessions never emit completion toasts, but their questions and
+  approval requests do notify.
+- If the turn already called `win_notify`, the automatic toast is suppressed.
+- Quick decisions stay silent; parallel approvals coalesce into one toast.
 
 ## Tool
 
-| Arg | Default | Meaning |
-|-----|---------|---------|
-| `title` | `DSH` | Window / balloon title (`maxLen`) |
+`win_notify` is still registered for explicit, extra alerts.
+
+| Param | Default | Meaning |
+|---|---|---|
+| `title` | `DSH` | Window / balloon title |
 | `body` | `Task finished.` | Message body |
-| `mode` | `messagebox` | `toast` (BalloonTip) or `messagebox` |
+| `mode` | `messagebox` | `toast` or `messagebox` |
 
 ## Install
 
+Local link (recommended for this machine — edits take effect on restart):
+
 ```sh
-dsh plugin --profile web add github:173787247/dsh-wsl-notify
+dsh plugin --profile web add link:/root/Work/dsh/dsh-wsl-notify
+dsh plugin --profile web remove dsh-wsl-notify   # drop the upstream install
 ```
 
-## Config
+From git:
+
+```sh
+dsh plugin --profile web add github:liuzwZYW/dsh-wsl-notify
+```
+
+## Configuration
 
 ```yaml
-- id: dsh-wsl-notify
-  name: dsh-wsl-notify
+- id: wsl-notify
+  name: '@liuzw/dsh-wsl-notify'
   config:
     timeoutMs: 30000
     maxLen: 500
+    autoNotify: true
+    autoMode: toast
+    autoMinSeconds: 10
+    autoSnippetChars: 140
+    approvalDelayMs: 1500
+    questionDelayMs: 2000
 ```
 
-## Test
+## Tests
 
 ```sh
-npm test
+npm test        # state machine unit tests
+npm run smoke   # applies the plugin to a fake context
 ```
 
 ## License
 
-MIT
+MIT. Original work (c) 173787247; fork changes by liuzw.

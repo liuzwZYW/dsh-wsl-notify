@@ -1,6 +1,18 @@
 - insert:
-    - id: dsh-wsl-notify
-      name: dsh-wsl-notify
+    - id: wsl-notify
+      name: '@liuzw/dsh-wsl-notify'
       config:
         timeoutMs: 30000
         maxLen: 500
+        # Deterministic notifications: no reliance on the model calling win_notify.
+        autoNotify: true
+        # toast = non-blocking balloon; messagebox = blocking dialog.
+        autoMode: toast
+        # Only turns at least this long produce a "finished" toast (seconds).
+        autoMinSeconds: 10
+        # Body budget for the reply snippet.
+        autoSnippetChars: 140
+        # Wait this long before nagging about a pending approval (ms).
+        approvalDelayMs: 1500
+        # Grace before nagging about an unanswered ask_user_question (ms).
+        questionDelayMs: 2000
