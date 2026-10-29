@@ -26,8 +26,8 @@ Fork of [`173787247/dsh-wsl-notify`](https://github.com/173787247/dsh-wsl-notify
 ## Toast identity
 
 The notification is a real Windows toast under our own AppUserModelID, so the
-header reads **[whale mark] deepseek HARNESS** instead of "Windows PowerShell
-5.1", and the icon reflects what happened:
+header reads **[whale mark] deepseek HARNESS** — the bare mark, no badge box —
+instead of "Windows PowerShell 5.1", and the big icon reflects what happened:
 
 | Kind | Icon |
 |---|---|
