@@ -2,6 +2,7 @@ import { detectWsl, runPowerShell } from "./lib/wsl-host.js";
 import {
   buildNotifyScript,
   buildToastScript,
+  buildWinRtToastScript,
   encodeTitleBody,
   formatNotifyResult,
   normalizeMode,
@@ -66,7 +67,7 @@ export function apply(ctx, config = {}) {
       const title = String(args?.title ?? "DSH").slice(0, maxLen);
       const body = String(args?.body ?? "Task finished.").slice(0, maxLen);
       const mode = normalizeMode(args?.mode);
-      const result = await notify(title, body, mode);
+      const result = await notify(title, body, mode, "done");
       return { ...result, title };
     },
     presentCall: () => ({ card: "generic", title: "Windows notify" }),
@@ -85,7 +86,7 @@ export function apply(ctx, config = {}) {
 
   const sendAuto = (note) => {
     // Fire-and-forget: a notification must never stall the agent.
-    notify(note.title.slice(0, maxLen), note.body.slice(0, maxLen), autoMode)
+    notify(note.title.slice(0, maxLen), note.body.slice(0, maxLen), autoMode, note.kind)
       .then((result) => {
         if (!result.ok) ctx.logger?.warn?.(`dsh-wsl-notify: auto notification failed: ${result.error}`);
       })
@@ -133,17 +134,23 @@ export function apply(ctx, config = {}) {
  * @returns {Promise<{ok: boolean, mode?: string, error?: string}>}
  */
 function createNotifier({ wsl, timeoutMs }) {
-  return async function send(title, body, mode) {
+  return async function send(title, body, mode, kind = "done") {
     if (!wsl) return { ok: false, error: "not running in WSL" };
     const { titleB64, bodyB64 } = encodeTitleBody(title, body);
     try {
       if (mode === "toast") {
+        // Preferred: a real toast under our own AppUserModelID (custom name
+        // and per-kind icon). Fall back to the shell balloon, then to a dialog.
         try {
-          await runPowerShell(buildToastScript(titleB64, bodyB64), { timeoutMs });
+          await runPowerShell(buildWinRtToastScript(titleB64, bodyB64, kind), { timeoutMs });
           return { ok: true, mode: "toast" };
         } catch {
-          await runPowerShell(buildNotifyScript(titleB64, bodyB64), { timeoutMs });
-          return { ok: true, mode: "messagebox" };
+          try {
+            await runPowerShell(buildToastScript(titleB64, bodyB64), { timeoutMs });
+            return { ok: true, mode: "balloon" };
+          } catch {
+            // fall through to MessageBox
+          }
         }
       }
       await runPowerShell(buildNotifyScript(titleB64, bodyB64), { timeoutMs });

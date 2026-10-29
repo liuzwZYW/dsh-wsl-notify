@@ -1,6 +1,6 @@
 {
   "name": "@liuzw/dsh-wsl-notify",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "DeepSeek Harness plugin (fork of dsh-wsl-notify): Windows notifications from WSL, automatically on turn end / pending question / approval, plus a win_notify tool.",
   "author": "liuzw",
   "license": "MIT",

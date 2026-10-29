@@ -19,6 +19,22 @@
 - 本轮已调过 `win_notify` 则不重复弹。
 - 宽限期内被答掉/批掉的请求不弹；并行授权合并为一条。
 
+## 通知身份（标题栏）
+
+发的是真正的 Windows toast，走自己的 AppUserModelID，所以标题栏显示的是
+**「鲸鱼图标 + deepseek HARNESS」**，不再是 “Windows PowerShell 5.1”；左侧大图标按事件区分：
+
+| 类型 | 图标 |
+|---|---|
+| `done` | 绿色对勾 |
+| `question` | 蓝色问号 |
+| `approval` | 橙色感叹号 |
+
+首次发通知时，插件会把图标写到 `%LOCALAPPDATA%\DSH\notify\icons`，并创建
+`%APPDATA%\Microsoft\Windows\Start Menu\Programs\deepseek HARNESS.lnk`
+（快捷方式负责注册 app id —— 未注册的 id 发给系统会被直接丢弃）。toast 失败时退回旧的
+气泡通知，再失败才用 MessageBox。
+
 ## 工具
 
 `win_notify` 保留，用于额外/更早的提醒。

@@ -23,6 +23,25 @@ Fork of [`173787247/dsh-wsl-notify`](https://github.com/173787247/dsh-wsl-notify
 - If the turn already called `win_notify`, the automatic toast is suppressed.
 - Quick decisions stay silent; parallel approvals coalesce into one toast.
 
+## Toast identity
+
+The notification is a real Windows toast under our own AppUserModelID, so the
+header reads **[whale mark] deepseek HARNESS** instead of "Windows PowerShell
+5.1", and the icon reflects what happened:
+
+| Kind | Icon |
+|---|---|
+| `done` | green check |
+| `question` | blue question mark |
+| `approval` | amber exclamation |
+
+On the first notification the plugin writes the icons to
+`%LOCALAPPDATA%\DSH\notify\icons` and creates
+`%APPDATA%\Microsoft\Windows\Start Menu\Programs\deepseek HARNESS.lnk`
+(the shortcut is what registers the app id — Windows drops toasts from an
+unregistered one). If the toast path fails it falls back to the legacy balloon
+tip, then to MessageBox.
+
 ## Tool
 
 `win_notify` is still registered for explicit, extra alerts.

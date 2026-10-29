@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.1
+
+Real Windows toast instead of a shell balloon tip:
+
+- The notification source is now **`deepseek HARNESS`** with the DSH whale mark,
+  backed by an AppUserModelID registered through a Start Menu shortcut
+  (`deepseek HARNESS.lnk`). Windows refuses to show toasts from unregistered
+  app ids, which is why the old balloon carried "Windows PowerShell 5.1".
+- Per-kind icons in the big slot (`appLogoOverride`): green check for "done",
+  blue question mark for a pending question, amber exclamation for an approval.
+- Images are inlined in the bundle and written to
+  `%LOCALAPPDATA%\DSH\notify\icons` on first use — no WSL path dependency.
+- Balloon tip (0.2.0 code) is kept as the first fallback, MessageBox as the last.
+- The legacy `DSH.lnk` shortcut is removed so only one AUMID registration remains.
+
 ## 0.2.0 (fork @liuzw/dsh-wsl-notify)
 
 - Forked from 173787247/dsh-wsl-notify 0.1.1 and republished under the
